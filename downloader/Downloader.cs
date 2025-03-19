@@ -1,16 +1,12 @@
 using System.Net;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Net.Mime;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Asn1.Ocsp;
 
 class Downloader
 {
-    private PDFContext dbContext;
+    // 100000000 = 10 seconts
+    private const int TimeoutTicks = 100000000;
+    private readonly PDFContext dbContext;
 
     public Downloader(PDFContext dbContext)
     {
@@ -22,9 +18,8 @@ class Downloader
         using var client = new HttpClient();
         client.BaseAddress = url;
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/pdf"));
-        client.Timeout = new TimeSpan(100000000);
-        var response = await client.GetAsync(url);
-        return response;
+        client.Timeout = new TimeSpan(TimeoutTicks);
+        return await client.GetAsync(url);
 
     }
     public async Task DownloadPdfsAsync(string path, int limit = 10, int offset = 0)
@@ -99,34 +94,7 @@ class Downloader
                     }
                 }
             }
-            catch (HttpRequestException e)
-            {
-                // Console.WriteLine(e);
-                if (retry)
-                    pdf.pdf_downloaded = "no";
-                else
-                    needRetry.Add(pdf);
-                return;
-            }
-            catch (ArgumentException e)
-            {
-                // Console.WriteLine(e);
-                if (retry)
-                    pdf.pdf_downloaded = "no";
-                else
-                    needRetry.Add(pdf);
-                return;
-            }
-            catch (TimeoutException e)
-            {
-                // Console.WriteLine(e);
-                if (retry)
-                    pdf.pdf_downloaded = "no";
-                else
-                    needRetry.Add(pdf);
-                return;
-            }
-            catch (Exception e)
+            catch (Exception)
             {
                 // Console.WriteLine(e);
                 if (retry)

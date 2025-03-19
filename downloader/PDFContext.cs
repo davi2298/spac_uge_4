@@ -24,4 +24,9 @@ class PDFContext : DbContext
         base.ConfigureConventions(configurationBuilder);
         // var tmp = configurationBuilder.Properties<PDF>(e => );
     }
+
+    public static int getPdfsSize(){
+        instanse ??= new();
+        return instanse.PDF.ToList().Count;
+    }
 }

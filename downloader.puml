@@ -1,0 +1,33 @@
+@startuml
+class PDF
+class "Parser" as p {
+    Parser instanse
+}
+p <<singleton>>
+
+class "PDFContext" as con{
+    PDFContext instanse
+    DbSet<PDF> PDF
+}
+con <<singleton>>
+
+class "Downloader" as d{
+    PDFContext dbContext
+    DownloadSinglePDF()
+    DownloadPdfsAsync()
+    getPdfs()
+    handleResponsesAsync()
+}
+
+class Program {
+    Main()
+}
+
+Program::Main *-- p
+Program::Main *-- d
+
+con *-- PDF
+d o-- con
+p o-- con
+
+@enduml
