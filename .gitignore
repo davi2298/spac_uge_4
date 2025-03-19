@@ -424,4 +424,5 @@ obj/
 # End of https://www.toptal.com/developers/gitignore/api/dotnetcore,csharp,visualstudiocode
 
 Data/
+!Data/Data/Metadata2006_2016.csv
 .env
