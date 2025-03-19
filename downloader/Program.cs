@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Org.BouncyCastle.Asn1.Cms;
 
 class Program
 {
@@ -13,6 +14,11 @@ class Program
             Parser.GetInstanse.LoadFromCSV(Path.Combine(SLNPATH, "Data\\Data\\Metadata2006_2016.csv"));
         }
         var downloader = new Downloader(PDFContext.GetInstanse);
-        await downloader.DownloadPdfsAsync(SLNPATH + $"\\Data\\pdfs", 10, Random.Shared.Next(1000));
+        for (int i = 240; i < 1000; i+= 10){
+            await downloader.DownloadPdfsAsync(SLNPATH + $"\\Data\\pdfs", 10, i);
+            Console.WriteLine(i);
+            Thread.Sleep(20000);
+        }
+
     }
 }
