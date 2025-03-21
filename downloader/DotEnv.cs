@@ -31,6 +31,6 @@ public static class DotEnv
         {
             directory = directory.Parent;
         }
-        return directory;
+        return directory!;
     }
 }

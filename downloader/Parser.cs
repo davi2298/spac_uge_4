@@ -35,19 +35,31 @@ public class Parser
             .Select(s => s.Split(';').ToList().Select(ss => ss.Length == 0 ? null : ss).ToArray())
             ;
         List<PDF> pdfs = new();
-
-        Parallel.ForEach(lines, async line =>
-        {
-            if (line[0] == null) throw new IOException("CSV is missing element");
-            var pdf = await createPdf(line!);
-            pdfs.Add(pdf);
-
-        });
+        NewMethodAsync(lines).ToList().ForEach(async e => pdfs.Add(await e));
         // pdfs.ForEach(AddPDF);
+
         dbContext.PDF.AddRange(pdfs);
-        dbContext.SaveChanges();
+
+        // await dbContext.AddRangeAsync(pdfs.AsEnumerable());
+        var tmp = dbContext.SaveChanges();
 
     }
+
+    private IEnumerable<Task<PDF>> NewMethodAsync(IEnumerable<string?[]> lines)
+    {
+        foreach (var line in lines)
+        {
+
+
+
+            if (line[0] == null) throw new IOException("CSV is missing element");
+            yield return createPdf(line!);
+
+
+        }
+        ;
+    }
+
     private async Task<PDF> createPdf(string[] line)
     {
 

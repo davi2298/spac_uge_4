@@ -24,16 +24,11 @@ class Downloader
     }
     public async Task DownloadPdfsAsync(string path, int limit = 10, int offset = 0)
     {
-        var pdfsToGet = (await dbContext.PDF.Where(e => e.pdf_downloaded != "yes").ToListAsync()).GetRange(0 + offset, limit);
-        // var pdfsToGet = await dbContext.PDF.Where(e => e.BRnum == "BR10013").ToListAsync();
-
+        var pdfsToGet = (await dbContext.PDF.Where(e => e.pdf_downloaded != "yes" && e.pdf_downloaded != "cant").ToListAsync()).GetRange(0 + offset, limit);
         var responseTasks = getPdfs(pdfsToGet);
-
         var needRetrys = await handleResponsesAsync(responseTasks, path);
-
         var retryResponseTasks = getPdfs(needRetrys);
-
-        await handleResponsesAsync(retryResponseTasks, path);
+        await handleResponsesAsync(retryResponseTasks, path, true);
     }
 
     private List<(PDF, Task<HttpResponseMessage>)> getPdfs(IEnumerable<PDF> pdfsToGet, bool isRetry = false)
@@ -59,7 +54,7 @@ class Downloader
         List<PDF> needRetry = new();
         await Parallel.ForEachAsync(responses, async (grups, _) =>
         {
-            
+
             var pdf = grups.Item1;
             try
             {
@@ -67,7 +62,7 @@ class Downloader
                 if (response.StatusCode == HttpStatusCode.Forbidden)
                 {
                     if (retry)
-                        pdf.pdf_downloaded = "no";
+                        pdf.pdf_downloaded = "cant";
                     else
                         needRetry.Add(pdf);
                     return;
@@ -80,25 +75,28 @@ class Downloader
                         var filePath = path + $"\\{pdf.BRnum}.pdf";
                         using var file = File.Create(filePath);
                         var stream = await response.Content.ReadAsStreamAsync();
+
+                        // Here we create the pdf on its own thread so the program can continue
                         stream.CopyToAsync(file);
+
                         pdf.pdf_downloaded = "yes";
 
                     }
                     else
                     {
                         if (retry)
-                            pdf.pdf_downloaded = "no";
+                            pdf.pdf_downloaded = "cant";
                         else
                             needRetry.Add(pdf);
                         return;
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // Console.WriteLine(e);
+                Console.WriteLine(e.Message);
                 if (retry)
-                    pdf.pdf_downloaded = "no";
+                    pdf.pdf_downloaded = "cant";
                 else
                     needRetry.Add(pdf);
                 return;

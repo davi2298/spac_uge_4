@@ -25,8 +25,8 @@ class PDFContext : DbContext
         // var tmp = configurationBuilder.Properties<PDF>(e => );
     }
 
-    public static int getPdfsSize(){
+    public static int getMissingPdfsSize(){
         instanse ??= new();
-        return instanse.PDF.ToList().Count;
+        return instanse.PDF.ToList().Where(e => e.pdf_downloaded != "yes" && e.pdf_downloaded != "cant").ToList().Count;
     }
 }
